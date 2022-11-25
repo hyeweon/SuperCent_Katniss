@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// 항상 OOP로 짜려고 애쓰는 것이 좋다
+
 namespace Katniss
 {
 	public sealed class BST<T> : IEnumerable<T>
@@ -9,7 +11,7 @@ namespace Katniss
 		BSTNode<T> root;
 
 		public int Count { private set; get; } = 0;
-		public BSTNode<T> Root { private set; get; } = null;
+		//public BSTNode<T> Root { private set; get; } = null;
 		public IComparer<T> Comparer = Comparer<T>.Default;
 
 		public bool Contains(T value)
@@ -42,6 +44,7 @@ namespace Katniss
 			}
 		}
 
+		// Exception 말고 null 반환이 나을 듯
 		public BSTNode<T> Find(T value)
 		{
 			if (Count == 0) throw new System.Exception("존재하지 않는 value입니다.");
@@ -56,14 +59,14 @@ namespace Katniss
 						return currNode;
 
 					case var _ when comp > 0:
-						if (currNode.left != default)
+						if (currNode.left != null)
 							currNode = currNode.left;
 						else
 							throw new System.Exception("존재하지 않는 value입니다.");
 						break;
 
 					case var _ when comp < 0:
-						if (currNode.right != default)
+						if (currNode.right != null)
 							currNode = currNode.right;
 						else
 							throw new System.Exception("존재하지 않는 value입니다.");
@@ -130,7 +133,7 @@ namespace Katniss
 		public bool Remove(T value)
 		{
 			if (Count == 0) return false;
-
+			// find를 재활용하면 좋았을 듯
 			BSTNode<T> currNode = root;
 			while (true)
 			{
@@ -166,7 +169,9 @@ namespace Katniss
             {
 				if (node.left != default)
 				{
+					// parent의 ref만 수정하는 방식으로 대체
 					node.value = node.left.value;
+					node.parent = node.left.parent;
 					node.right = node.left.right;
 					node.left = node.left.left;
 				}
@@ -176,13 +181,14 @@ namespace Katniss
 						node.parent.left = default;
 					else if (node.parent.right == node)
 						node.parent.right = default;
-					else node.destroy();
+					else node.Destroy();
 				}
 			}
             else
             {
 				BSTNode<T> old_left = node.left;
 				node.value = node.right.value;
+				node.parent = node.right.parent;
 				node.left = node.right.left;
 				node.right = node.right.right;
 				if (old_left != default)
@@ -219,7 +225,8 @@ namespace Katniss
 
 		public void Clear()
 		{
-			root.destroy();
+			root.Destroy();
+			// 순회 후 destroy 필요
 			Count = 0;
 		}
 	}
@@ -237,14 +244,14 @@ namespace Katniss
 			parent = _parent;
         }
 
-		public void destroy()
+		public void Destroy()
         {
 			value = default;
 			parent = default;
 			left = default;
 			right = default;
 		}
-
+		
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 		public IEnumerator<T> GetEnumerator()
 		{
